@@ -9,6 +9,15 @@ const create = (data) => {
   })
 }
 
+const duplicate = (data) => {
+  return fetch('/.netlify/functions/todos-duplicate', {
+    body: JSON.stringify(data),
+    method: 'POST'
+  }).then(response => {
+    return response.json()
+  })
+}
+
 const readAll = () => {
   return fetch('/.netlify/functions/todos-read-all').then((response) => {
     return response.json()
@@ -44,6 +53,7 @@ const batchDeleteTodo = (todoIds) => {
 }
 
 export default {
+  duplicate: duplicate,
   create: create,
   readAll: readAll,
   update: update,

@@ -2,7 +2,8 @@
   cursor: text;
   display: block;
   padding: 10px;
-  width: 95%;
+  width: 90%;
+  margin: 10px;
 }
 .editable[contenteditable="true"] {
   outline: 3px solid #efefef;

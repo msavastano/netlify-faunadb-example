@@ -126,6 +126,57 @@ export default class App extends Component {
       })
     })
   }
+  duplicateTodo = (e) => {
+    e.preventDefault()
+    const todoId = e.target.dataset.id
+    const { todos } = this.state
+    const todo = todos.find((acc) => {
+      const currentId = getTodoId(acc)
+      return currentId === todoId 
+    })
+    console.log('todo', todo)
+    const todoTitle = todo.data.title
+
+    this.inputElement.value = ''
+
+    const todoInfo = {
+      title: todoTitle,
+      completed: false,
+    }
+    // Optimistically add todo to UI
+    const newTodoArray = [{
+      data: todoInfo,
+      ts: new Date().getTime() * 10000
+    }]
+
+    const optimisticTodoState = newTodoArray.concat(todos)
+
+    this.setState({
+      todos: optimisticTodoState
+    })
+    // Make API request to create new todo
+    api.duplicate(todoInfo).then((response) => {
+      console.log(response)
+      /* Track a custom event */
+      analytics.track('todoDuplicated', {
+        category: 'todos',
+        label: todoTitle,
+      })
+      // remove temporaryValue from state and persist API response
+      const persistedState = removeOptimisticTodo(todos).concat(response)
+      // Set persisted value to state
+      this.setState({
+        todos: persistedState
+      })
+    }).catch((e) => {
+      console.log('An API error occurred', e)
+      const revertedState = removeOptimisticTodo(todos)
+      // Reset to original state
+      this.setState({
+        todos: revertedState
+      })
+    })
+  }
   handleTodoCheckbox = (event) => {
     const { todos } = this.state
     const { target } = event
@@ -272,6 +323,14 @@ export default class App extends Component {
           </button>
         )
       }
+      let duplicateButton
+      if (ref) {
+        duplicateButton = (
+          <button data-id={id} onClick={this.duplicateTodo}>
+            duplicate
+          </button>
+        )
+      }
       const boxIcon = (data.completed) ? '#todo__box__done' : '#todo__box'
       return (
         <div key={i} className='todo-item'>
@@ -298,6 +357,7 @@ export default class App extends Component {
             </div>
           </label>
           {deleteButton}
+          {duplicateButton}
         </div>
       )
     })
